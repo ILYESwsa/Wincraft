@@ -1,0 +1,62 @@
+plugins {
+    id "net.fabricmc.fabric-loom" version "1.15-SNAPSHOT"
+    id "maven-publish"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "https://maven.fabricmc.net/" }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    // MC 26.1 uses Mojang's official mappings directly — Yarn is no
+    // longer supported as of this version, so no `mappings(...)` line.
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+java {
+    // MC 26.1 requires Java 25
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+loom {
+    // As of 26.1, Loom no longer remaps Minecraft/mods, so we use the
+    // `jar` task directly instead of `remapJar`.
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+
+    // Bundle the prebuilt native DLL (produced by the Rust build step
+    // in CI, or manually via native/build.ps1) into the mod jar under
+    // /native/windows-x86_64/, matching WincraftNative.ensureLoaded()'s
+    // resource lookup path.
+    from(project.rootProject.file("native/target/release")) {
+        include "wincraft.dll"
+        into "native/windows-x86_64"
+        rename "wincraft.dll", "wincraft.dll"
+    }
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 25
+}

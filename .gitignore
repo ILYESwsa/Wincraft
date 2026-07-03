@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+fabric/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Rust
+native/target/
+Cargo.lock
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Run directories created by Loom
+run/

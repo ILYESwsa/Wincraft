@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "wincraft",
+  "version": "${version}",
+  "name": "Wincraft",
+  "description": "Capture and control Windows desktop applications as grabbable windows inside Minecraft. Windows equivalent of waylandcraft.",
+  "authors": ["ILYESwsa"],
+  "contact": {
+    "homepage": "https://github.com/ILYESwsa/wincraft",
+    "sources": "https://github.com/ILYESwsa/wincraft"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/wincraft/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": ["com.wincraft.Wincraft"],
+    "client": ["com.wincraft.client.WincraftClient"]
+  },
+  "mixins": ["wincraft.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "26.1.x",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "custom": {
+    "wincraft:platform": "windows-only"
+  }
+}

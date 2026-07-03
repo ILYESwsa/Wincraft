@@ -1,0 +1,11 @@
+{
+  "key.wincraft.open_launcher": "Open Window Launcher",
+  "key.wincraft.toggle_capture": "Toggle Input Capture (hold Alt)",
+  "category.wincraft.general": "Wincraft",
+
+  "gui.wincraft.launcher.title": "Open Applications",
+  "gui.wincraft.launcher.empty": "No capturable windows found",
+  "gui.wincraft.launcher.refresh": "Refresh",
+
+  "wincraft.error.native_unavailable": "Wincraft native library failed to load — this mod requires Windows 10 2004+ or Windows 11"
+}

@@ -1,0 +1,4 @@
+// Root project intentionally minimal — the mod itself lives in the
+// fabric/ subproject. Kept separate so a future desktop/companion
+// tooling module (e.g. a launcher-side installer) could be added as a
+// sibling without touching the mod's own build config.
