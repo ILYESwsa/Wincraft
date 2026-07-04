@@ -1,7 +1,7 @@
 package com.wincraft.window;
 
-import com.wincraft.native.WincraftNative;
-import com.wincraft.native.WindowHandle;
+import com.wincraft.natives.WincraftNative;
+import com.wincraft.natives.WindowHandle;
 
 import java.util.ArrayList;
 import java.util.Collection;

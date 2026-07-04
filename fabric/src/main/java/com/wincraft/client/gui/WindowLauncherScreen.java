@@ -1,6 +1,6 @@
 package com.wincraft.client.gui;
 
-import com.wincraft.native.WindowHandle;
+import com.wincraft.natives.WindowHandle;
 import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
 import net.minecraft.client.gui.DrawContext;

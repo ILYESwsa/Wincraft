@@ -11,7 +11,7 @@ use crate::{capture::CaptureSession, enumerate, input, session};
 /// Lists capturable windows. Returns a Java `WindowHandle[]` array
 /// (see WindowHandle.java: hwnd, title, className).
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_enumerateWindows(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_enumerateWindows(
     mut env: JNIEnv,
     _class: JClass,
 ) -> jobjectArray {
@@ -58,7 +58,7 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_enumerateWindows(
 /// Starts capturing the given HWND. Returns an opaque session handle,
 /// or 0 on failure.
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_startCapture(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_startCapture(
     _env: JNIEnv,
     _class: JClass,
     hwnd: jlong,
@@ -71,7 +71,7 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_startCapture(
 
 /// Stops and releases a capture session.
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_stopCapture(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_stopCapture(
     _env: JNIEnv,
     _class: JClass,
     session_handle: jlong,
@@ -83,7 +83,7 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_stopCapture(
 /// width/height written into the provided int[2] out-param.
 /// Returns null if no new frame is available since the last call.
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_pollFrame(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_pollFrame(
     mut env: JNIEnv,
     _class: JClass,
     session_handle: jlong,
@@ -120,7 +120,7 @@ fn input_mode_from_jint(mode: jint) -> input::InputMode {
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_mouseMove(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_mouseMove(
     _env: JNIEnv,
     _class: JClass,
     hwnd: jlong,
@@ -132,7 +132,7 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_mouseMove(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_mouseButton(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_mouseButton(
     _env: JNIEnv,
     _class: JClass,
     hwnd: jlong,
@@ -151,7 +151,7 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_mouseButton(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_mouseWheel(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_mouseWheel(
     _env: JNIEnv,
     _class: JClass,
     hwnd: jlong,
@@ -164,7 +164,7 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_mouseWheel(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_keyEvent(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_keyEvent(
     _env: JNIEnv,
     _class: JClass,
     hwnd: jlong,
@@ -176,7 +176,7 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_keyEvent(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_charEvent(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_charEvent(
     _env: JNIEnv,
     _class: JClass,
     hwnd: jlong,
@@ -188,7 +188,7 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_charEvent(
 /// Simple liveness check exposed to Java so the mod can verify the
 /// native library loaded correctly before doing anything else.
 #[no_mangle]
-pub extern "system" fn Java_com_wincraft_native_WincraftNative_ping(
+pub extern "system" fn Java_com_wincraft_natives_WincraftNative_ping(
     _env: JNIEnv,
     _class: JClass,
 ) -> jboolean {

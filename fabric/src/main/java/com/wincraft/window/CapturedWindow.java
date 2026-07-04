@@ -1,8 +1,8 @@
 package com.wincraft.window;
 
-import com.wincraft.native.InputMode;
-import com.wincraft.native.VirtualKeyMap;
-import com.wincraft.native.WincraftNative;
+import com.wincraft.natives.InputMode;
+import com.wincraft.natives.VirtualKeyMap;
+import com.wincraft.natives.WincraftNative;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.TextureFormat;

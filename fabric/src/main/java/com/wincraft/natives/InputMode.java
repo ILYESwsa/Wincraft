@@ -1,4 +1,4 @@
-package com.wincraft.native;
+package com.wincraft.natives;
 
 /**
  * How input events get delivered to a captured window.

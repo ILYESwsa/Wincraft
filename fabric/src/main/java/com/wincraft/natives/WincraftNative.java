@@ -1,4 +1,4 @@
-package com.wincraft.native;
+package com.wincraft.natives;
 
 import com.wincraft.Wincraft;
 

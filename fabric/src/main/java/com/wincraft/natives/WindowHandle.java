@@ -1,4 +1,4 @@
-package com.wincraft.native;
+package com.wincraft.natives;
 
 /**
  * Describes one capturable desktop window, as returned by

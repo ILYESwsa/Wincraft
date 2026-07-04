@@ -1,7 +1,7 @@
 package com.wincraft.client;
 
 import com.wincraft.Wincraft;
-import com.wincraft.native.WincraftNative;
+import com.wincraft.natives.WincraftNative;
 import com.wincraft.window.WindowManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
