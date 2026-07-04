@@ -17,7 +17,7 @@ pub extern "system" fn Java_com_wincraft_natives_WincraftNative_enumerateWindows
 ) -> jobjectArray {
     let windows = enumerate::enumerate_windows();
 
-    let handle_class = match env.find_class("com/wincraft/native/WindowHandle") {
+    let handle_class = match env.find_class("com/wincraft/natives/WindowHandle") {
         Ok(c) => c,
         Err(_) => return std::ptr::null_mut(),
     };
