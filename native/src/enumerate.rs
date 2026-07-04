@@ -2,12 +2,12 @@
 //! Feeds the in-game "app launcher" screen (bound to a key, mirroring
 //! waylandcraft's launcher UX).
 
-use windows::Win32::Foundation::{HWND, LPARAM, BOOL, TRUE};
-use windows::Win32::UI::WindowsAndMessaging::{
-    EnumWindows, GetWindowTextW, GetWindowTextLengthW, IsWindowVisible,
-    GetWindowLongW, GWL_EXSTYLE, WS_EX_TOOLWINDOW, GetShellWindow, GetClassNameW,
-};
+use windows::Win32::Foundation::{BOOL, HWND, LPARAM, TRUE};
 use windows::Win32::UI::WindowsAndMessaging::IsIconic;
+use windows::Win32::UI::WindowsAndMessaging::{
+    EnumWindows, GetClassNameW, GetShellWindow, GetWindowLongW, GetWindowTextLengthW,
+    GetWindowTextW, IsWindowVisible, GWL_EXSTYLE, WS_EX_TOOLWINDOW,
+};
 
 #[derive(Debug, Clone)]
 pub struct WindowInfo {

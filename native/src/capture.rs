@@ -3,11 +3,11 @@
 //! Each captured frame is copied into a CPU-readable BGRA8 buffer that
 //! the JNI layer hands to Java as a direct ByteBuffer for texture upload.
 
-use std::sync::Arc;
 use parking_lot::Mutex;
+use std::sync::Arc;
 
 use windows::core::Interface;
-use windows::Foundation::TypedEventHandler;
+use windows::Foundation::{EventRegistrationToken, TypedEventHandler};
 use windows::Graphics::Capture::{
     Direct3D11CaptureFramePool, GraphicsCaptureItem, GraphicsCaptureSession,
 };
@@ -16,16 +16,15 @@ use windows::Graphics::SizeInt32;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct3D::D3D_DRIVER_TYPE_HARDWARE;
 use windows::Win32::Graphics::Direct3D11::{
-    D3D11CreateDevice, ID3D11Device, ID3D11DeviceContext, ID3D11Texture2D,
-    D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_SDK_VERSION,
-    D3D11_CPU_ACCESS_READ, D3D11_MAP_READ, D3D11_MAPPED_SUBRESOURCE,
+    D3D11CreateDevice, ID3D11Device, ID3D11DeviceContext, ID3D11Texture2D, D3D11_CPU_ACCESS_READ,
+    D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D11_MAPPED_SUBRESOURCE, D3D11_MAP_READ, D3D11_SDK_VERSION,
     D3D11_TEXTURE2D_DESC, D3D11_USAGE_STAGING,
 };
+use windows::Win32::Graphics::Dxgi::IDXGIDevice;
 use windows::Win32::System::WinRT::Direct3D11::{
     CreateDirect3D11DeviceFromDXGIDevice, IDirect3DDxgiInterfaceAccess,
 };
 use windows::Win32::System::WinRT::Graphics::Capture::IGraphicsCaptureItemInterop;
-use windows::Win32::Graphics::Dxgi::IDXGIDevice;
 
 pub struct FrameData {
     pub width: u32,
@@ -37,6 +36,7 @@ pub struct FrameData {
 pub struct CaptureSession {
     _item: GraphicsCaptureItem,
     _frame_pool: Direct3D11CaptureFramePool,
+    _frame_arrived_token: EventRegistrationToken,
     session: GraphicsCaptureSession,
     d3d_device: ID3D11Device,
     d3d_context: ID3D11DeviceContext,
@@ -87,7 +87,7 @@ impl CaptureSession {
 
             let latest_frame: Arc<Mutex<Option<FrameData>>> = Arc::new(Mutex::new(None));
 
-            {
+            let frame_arrived_token = {
                 let latest_frame = latest_frame.clone();
                 let d3d_device = d3d_device.clone();
                 let d3d_context = d3d_context.clone();
@@ -104,14 +104,15 @@ impl CaptureSession {
                         }
                         Ok(())
                     },
-                ))?;
-            }
+                ))?
+            };
 
             session.StartCapture()?;
 
             Ok(Self {
                 _item: item,
                 _frame_pool: frame_pool,
+                _frame_arrived_token: frame_arrived_token,
                 session,
                 d3d_device,
                 d3d_context,
