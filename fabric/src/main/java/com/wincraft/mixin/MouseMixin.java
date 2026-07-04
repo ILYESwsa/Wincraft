@@ -3,7 +3,7 @@ package com.wincraft.mixin;
 import com.wincraft.client.InputCaptureController;
 import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
-import net.minecraft.client.Mouse;
+import net.minecraft.client.MouseHandler;
 import net.minecraft.client.input.MouseInput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * backporting this to an older MC version, use the legacy signature
  * instead.
  */
-@Mixin(Mouse.class)
+@Mixin(MouseHandler.class)
 public abstract class MouseMixin {
 
     @Inject(method = "onMouseButton", at = @At("HEAD"), cancellable = true)

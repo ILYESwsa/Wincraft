@@ -2,7 +2,7 @@ package com.wincraft.client;
 
 import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 /**
  * "Hard keyboard capture mode" — mirrors waylandcraft's ALT-Q behavior:
@@ -21,7 +21,7 @@ public final class InputCaptureController {
     private InputCaptureController() {}
 
     public static void toggle() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         CapturedWindow focused = WindowManager.get().getFocused();
 
         if (capturing) {

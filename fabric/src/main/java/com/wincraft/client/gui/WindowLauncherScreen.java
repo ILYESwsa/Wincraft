@@ -3,10 +3,10 @@ package com.wincraft.client.gui;
 import com.wincraft.natives.WindowHandle;
 import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class WindowLauncherScreen extends Screen {
     private static final int LIST_WIDTH = 260;
 
     public WindowLauncherScreen() {
-        super(Text.translatable("gui.wincraft.launcher.title"));
+        super(Component.translatable("gui.wincraft.launcher.title"));
     }
 
     @Override
@@ -39,20 +39,20 @@ public class WindowLauncherScreen extends Screen {
 
         int y = startY;
         for (WindowHandle handle : handles) {
-            this.addDrawableChild(ButtonWidget.builder(
-                    Text.literal(truncate(handle.title, 40)),
+            this.addDrawableChild(Button.builder(
+                    Component.literal(truncate(handle.title, 40)),
                     button -> openWindow(handle)
             ).dimensions(x, y, LIST_WIDTH, 20).build());
             y += ROW_HEIGHT;
         }
 
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.translatable("gui.wincraft.launcher.refresh"),
+        this.addDrawableChild(Button.builder(
+                Component.translatable("gui.wincraft.launcher.refresh"),
                 button -> this.clearAndInit()
         ).dimensions(x, y + 10, LIST_WIDTH, 20).build());
 
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.translatable("gui.cancel"),
+        this.addDrawableChild(Button.builder(
+                Component.translatable("gui.cancel"),
                 button -> this.close()
         ).dimensions(x, y + 36, LIST_WIDTH, 20).build());
     }
@@ -72,7 +72,7 @@ public class WindowLauncherScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
@@ -80,7 +80,7 @@ public class WindowLauncherScreen extends Screen {
         if (WindowManager.get().listAvailableWindows().isEmpty()) {
             context.drawCenteredTextWithShadow(
                     this.textRenderer,
-                    Text.translatable("gui.wincraft.launcher.empty"),
+                    Component.translatable("gui.wincraft.launcher.empty"),
                     this.width / 2,
                     this.height / 4,
                     0xAAAAAA

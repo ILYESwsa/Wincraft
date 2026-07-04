@@ -6,7 +6,6 @@ import com.wincraft.natives.WincraftNative;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.TextureFormat;
-import net.minecraft.client.MinecraftClient;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;

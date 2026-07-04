@@ -6,32 +6,32 @@ import com.wincraft.window.WindowManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.InputConstants;
 import org.lwjgl.glfw.GLFW;
 
 public class WincraftClient implements ClientModInitializer {
 
     // Mirrors waylandcraft's default binds: B = window manager screen,
     // ALT-Q = toggle hard keyboard capture on the focused window.
-    private static KeyBinding openLauncherKey;
-    private static KeyBinding toggleCaptureKey;
+    private static KeyMapping openLauncherKey;
+    private static KeyMapping toggleCaptureKey;
 
     @Override
     public void onInitializeClient() {
         WincraftNative.ensureLoaded();
 
-        openLauncherKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+        openLauncherKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.wincraft.open_launcher",
-                InputUtil.Type.KEYSYM,
+                InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_B,
                 "category.wincraft.general"
         ));
 
-        toggleCaptureKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+        toggleCaptureKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.wincraft.toggle_capture",
-                InputUtil.Type.KEYSYM,
+                InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_Q, // combined with Alt held, checked in tick
                 "category.wincraft.general"
         ));
@@ -41,7 +41,7 @@ public class WincraftClient implements ClientModInitializer {
         Wincraft.LOGGER.info("wincraft client initialized (native loaded: {})", WincraftNative.isLoaded());
     }
 
-    private void onClientTick(MinecraftClient client) {
+    private void onClientTick(Minecraft client) {
         WindowManager.get().tick();
 
         if (!WincraftNative.isLoaded()) {
@@ -54,8 +54,8 @@ public class WincraftClient implements ClientModInitializer {
             }
         }
 
-        boolean altHeld = InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)
-                || InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_ALT);
+        boolean altHeld = InputConstants.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)
+                || InputConstants.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_RIGHT_ALT);
 
         while (toggleCaptureKey.wasPressed()) {
             if (altHeld) {
