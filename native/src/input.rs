@@ -92,7 +92,6 @@ pub fn mouse_wheel(hwnd: isize, mode: InputMode, delta: i32, x: i32, y: i32) {
     match mode {
         InputMode::Windowed => unsafe {
             let lparam = make_lparam(x as u16, y as u16);
-            // High-order word of wParam carries the wheel delta.
             let wparam = WPARAM(((delta as u32) << 16) as usize);
             let _ = PostMessageW(hwnd, WM_MOUSEWHEEL, wparam, lparam);
         },
@@ -145,7 +144,6 @@ unsafe fn send_mouse_event(flags: windows::Win32::UI::Input::KeyboardAndMouse::M
 }
 
 unsafe fn send_absolute_mouse_move(screen_x: i32, screen_y: i32) {
-    // Normalize to 0..65535 range required for MOUSEEVENTF_ABSOLUTE.
     let screen_w = windows::Win32::UI::WindowsAndMessaging::GetSystemMetrics(
         windows::Win32::UI::WindowsAndMessaging::SM_CXSCREEN,
     );

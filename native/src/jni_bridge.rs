@@ -56,8 +56,7 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_enumerateWindows(
 }
 
 /// Starts capturing the given HWND. Returns an opaque session handle,
-/// or 0 on failure (e.g. capture unsupported on this Windows build, or
-/// the window rejects capture / has protected content).
+/// or 0 on failure.
 #[no_mangle]
 pub extern "system" fn Java_com_wincraft_native_WincraftNative_startCapture(
     _env: JNIEnv,
@@ -97,7 +96,6 @@ pub extern "system" fn Java_com_wincraft_native_WincraftNative_pollFrame(
         _ => return std::ptr::null_mut(),
     };
 
-    // Write [width, height] into the caller-provided int array.
     let dims_arr = unsafe { JObject::from_raw(dims_out) };
     let dims = jni::objects::JIntArray::from(dims_arr);
     let dims_vals: [jint; 2] = [frame.width as jint, frame.height as jint];

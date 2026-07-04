@@ -49,8 +49,6 @@ impl CaptureSession {
     /// on this Windows build).
     pub fn start(hwnd: isize) -> windows::core::Result<Self> {
         unsafe {
-            // 1. Create a D3D11 device (hardware, BGRA-capable so it can
-            //    back a WinRT capture surface).
             let mut d3d_device: Option<ID3D11Device> = None;
             let mut d3d_context: Option<ID3D11DeviceContext> = None;
             D3D11CreateDevice(
@@ -67,24 +65,21 @@ impl CaptureSession {
             let d3d_device = d3d_device.unwrap();
             let d3d_context = d3d_context.unwrap();
 
-            // 2. Wrap it as a WinRT IDirect3DDevice for the capture APIs.
             let dxgi_device: IDXGIDevice = d3d_device.cast()?;
             let winrt_device = CreateDirect3D11DeviceFromDXGIDevice(&dxgi_device)?;
             let winrt_device: windows::Graphics::DirectX::Direct3D11::IDirect3DDevice =
                 winrt_device.cast()?;
 
-            // 3. Create a GraphicsCaptureItem for the target HWND.
             let interop: IGraphicsCaptureItemInterop =
                 windows::core::factory::<GraphicsCaptureItem, IGraphicsCaptureItemInterop>()?;
             let item: GraphicsCaptureItem = interop.CreateForWindow(HWND(hwnd as *mut _))?;
 
             let size: SizeInt32 = item.Size()?;
 
-            // 4. Frame pool + session.
             let frame_pool = Direct3D11CaptureFramePool::Create(
                 &winrt_device,
                 DirectXPixelFormat::B8G8R8A8UIntNormalized,
-                2, // double-buffered
+                2,
                 size,
             )?;
 

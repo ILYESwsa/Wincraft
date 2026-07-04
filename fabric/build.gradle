@@ -17,10 +17,13 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    // MC 26.1 uses Mojang's official mappings directly — Yarn is no
-    // longer supported as of this version, so no `mappings(...)` line.
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    // MC 26.1 is unobfuscated (official Mojang names ship directly with
+    // the game) — there is nothing to remap, so no `mappings(...)` line
+    // and no `modImplementation`/`modApi`/etc. Per Fabric's 26.1 porting
+    // guide, those all become plain `implementation`/`api`/etc.
+    // https://docs.fabricmc.net/develop/porting/ (1.21.11 -> 26.1)
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 }
 
 java {
@@ -40,10 +43,6 @@ processResources {
         expand "version": project.version
     }
 
-    // Bundle the prebuilt native DLL (produced by the Rust build step
-    // in CI, or manually via native/build.ps1) into the mod jar under
-    // /native/windows-x86_64/, matching WincraftNative.ensureLoaded()'s
-    // resource lookup path.
     from(project.rootProject.file("native/target/release")) {
         include "wincraft.dll"
         into "native/windows-x86_64"
