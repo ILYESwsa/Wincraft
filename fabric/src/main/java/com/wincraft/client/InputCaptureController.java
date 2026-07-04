@@ -3,20 +3,23 @@ package com.wincraft.client;
 import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
 import net.minecraft.client.Minecraft;
-import org.lwjgl.glfw.GLFW;
 
 /**
  * Hard-keyboard-capture-mode toggling (mirrors ALT-Q / "G" in the Linux
  * waylandcraft mod). While capturing:
  *  - MouseHandlerMixin/KeyboardHandlerMixin redirect input to the focused
  *    CapturedWindow instead of vanilla gameplay (see InputForwarder).
- *  - The OS cursor is switched from GLFW's disabled/raw-look mode to
- *    normal mode so it becomes a visible, absolute-position pointer the
- *    player can see moving over the in-world window texture, instead of
- *    an invisible relative-delta look-cursor.
+ *  - The OS cursor is released via vanilla's own MouseHandler#releaseMouse
+ *    (the same call the pause menu uses) so it becomes a normal, visible
+ *    pointer instead of GLFW's disabled/raw-look camera cursor.
  *
- * Releasing restores vanilla's disabled cursor mode so camera look
- * resumes exactly as before capture started.
+ * Releasing re-grabs the mouse via MouseHandler#grabMouse so camera look
+ * resumes exactly as before capture started. This deliberately avoids
+ * touching the raw GLFW window handle directly — 26.1's Window class
+ * restructured around a GpuBackend and no longer exposes that the same
+ * way older versions did, so going through MouseHandler keeps this code
+ * on stable, documented vanilla API instead of a native pointer we'd
+ * have to keep re-guessing the accessor for.
  */
 public final class InputCaptureController {
 
@@ -35,7 +38,7 @@ public final class InputCaptureController {
 
         capturing = true;
         focused.setFocused(true);
-        setCursorNormal();
+        Minecraft.getInstance().mouseHandler.releaseMouse();
     }
 
     public static boolean isCapturing() {
@@ -49,24 +52,12 @@ public final class InputCaptureController {
         CapturedWindow focused = WindowManager.get().getFocused();
         if (focused != null) focused.setFocused(false);
 
-        restoreCursorGrab();
-    }
-
-    private static void setCursorNormal() {
-        long handle = Minecraft.getInstance().getWindow().getHandle();
-        GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
-    }
-
-    private static void restoreCursorGrab() {
         Minecraft client = Minecraft.getInstance();
         // Only re-grab if the game still owns input (e.g. no pause/other
-        // screen got opened while we were capturing) — mouseHandler.grabMouse()
-        // is the same call vanilla uses when closing a Screen back to gameplay.
+        // screen got opened while we were capturing) — grabbing while a
+        // Screen is open would fight the screen for cursor visibility.
         if (client.screen == null) {
             client.mouseHandler.grabMouse();
-        } else {
-            long handle = client.getWindow().getHandle();
-            GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
         }
     }
 }
