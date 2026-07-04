@@ -3,9 +3,11 @@ package com.wincraft.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.wincraft.Wincraft;
 import com.wincraft.client.gui.WindowLauncherScreen;
+import com.wincraft.client.render.WincraftWorldRenderer;
 import com.wincraft.natives.WincraftNative;
 import com.wincraft.window.WindowManager;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
@@ -32,7 +34,13 @@ public class WincraftClient implements ClientModInitializer {
                 CATEGORY
         ));
 
+        WincraftWorldRenderer.register();
+
         ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            InputCaptureController.release();
+            WindowManager.get().closeAll();
+        });
 
         Wincraft.LOGGER.info("wincraft client initialized (native loaded: {})", WincraftNative.isLoaded());
     }
