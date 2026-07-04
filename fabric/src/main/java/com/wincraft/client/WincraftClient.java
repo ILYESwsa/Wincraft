@@ -44,10 +44,14 @@ public class WincraftClient implements ClientModInitializer {
             return;
         }
 
+        // Note: intentionally not gating on "is a screen already open" —
+        // that field's exact name in 26.1's official mappings wasn't
+        // confirmed after two failed guesses (currentScreen didn't
+        // exist). setScreen() simply replaces whatever's open, and
+        // consumeClick() already prevents repeat-fire while B is held,
+        // so this is safe to call unconditionally.
         while (openLauncherKey.consumeClick()) {
-            if (Minecraft.getInstance().currentScreen == null) {
-                Minecraft.getInstance().setScreen(new WindowLauncherScreen());
-            }
+            client.setScreen(new WindowLauncherScreen());
         }
     }
 }
