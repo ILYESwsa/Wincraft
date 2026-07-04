@@ -2,9 +2,9 @@
 //! method signatures in `com.wincraft.native.WincraftNative` — see
 //! fabric/src/main/java/com/wincraft/native/WincraftNative.java.
 
-use jni::JNIEnv;
 use jni::objects::{JClass, JObject, JValue};
-use jni::sys::{jlong, jint, jobjectArray, jboolean, jbyteArray, JNI_TRUE};
+use jni::sys::{jboolean, jbyteArray, jint, jlong, jobjectArray, JNI_TRUE};
+use jni::JNIEnv;
 
 use crate::{capture::CaptureSession, enumerate, input, session};
 
@@ -147,7 +147,14 @@ pub extern "system" fn Java_com_wincraft_natives_WincraftNative_mouseButton(
     } else {
         input::MouseButton::Right
     };
-    input::mouse_button(hwnd as isize, input_mode_from_jint(mode), btn, down == JNI_TRUE, x, y);
+    input::mouse_button(
+        hwnd as isize,
+        input_mode_from_jint(mode),
+        btn,
+        down == JNI_TRUE,
+        x,
+        y,
+    );
 }
 
 #[no_mangle]
@@ -172,7 +179,12 @@ pub extern "system" fn Java_com_wincraft_natives_WincraftNative_keyEvent(
     vk_code: jint,
     down: jboolean,
 ) {
-    input::key_event(hwnd as isize, input_mode_from_jint(mode), vk_code as u16, down == JNI_TRUE);
+    input::key_event(
+        hwnd as isize,
+        input_mode_from_jint(mode),
+        vk_code as u16,
+        down == JNI_TRUE,
+    );
 }
 
 #[no_mangle]

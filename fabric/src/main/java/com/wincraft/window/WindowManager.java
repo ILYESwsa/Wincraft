@@ -2,6 +2,9 @@ package com.wincraft.window;
 
 import com.wincraft.natives.WincraftNative;
 import com.wincraft.natives.WindowHandle;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +47,9 @@ public final class WindowManager {
         if (!window.start()) {
             return null;
         }
+        placeInFrontOfPlayer(window);
         windows.put(window.id, window);
+        setFocused(window.id);
         return window;
     }
 
@@ -108,5 +113,18 @@ public final class WindowManager {
 
     public boolean hasFocus() {
         return focusedWindow != null;
+    }
+
+    private void placeInFrontOfPlayer(CapturedWindow window) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            window.setWorldPose(0.0D, 80.0D, 0.0D, 0.0F);
+            return;
+        }
+
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getLookAngle();
+        Vec3 pos = eye.add(look.scale(3.0D));
+        window.setWorldPose(pos.x, pos.y, pos.z, player.getYRot());
     }
 }

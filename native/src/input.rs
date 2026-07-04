@@ -9,18 +9,16 @@
 //!     (some games / Electron / Chromium apps), but requires the
 //!     window to actually be foreground.
 
-use windows::Win32::Foundation::{HWND, WPARAM, LPARAM, POINT};
-use windows::Win32::Graphics::Gdi::{ClientToScreen};
-use windows::Win32::UI::WindowsAndMessaging::{
-    PostMessageW, SetForegroundWindow,
-    WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP,
-    WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_KEYDOWN, WM_KEYUP, WM_CHAR,
-};
+use windows::Win32::Foundation::{HWND, LPARAM, POINT, WPARAM};
+use windows::Win32::Graphics::Gdi::ClientToScreen;
 use windows::Win32::UI::Input::KeyboardAndMouse::{
-    SendInput, INPUT, INPUT_MOUSE, INPUT_KEYBOARD, MOUSEINPUT, KEYBDINPUT,
-    MOUSEEVENTF_MOVE, MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
-    MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_WHEEL,
-    KEYEVENTF_KEYUP, KEYBD_EVENT_FLAGS, VIRTUAL_KEY,
+    SendInput, INPUT, INPUT_KEYBOARD, INPUT_MOUSE, KEYBDINPUT, KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP,
+    MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE,
+    MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_WHEEL, MOUSEINPUT, VIRTUAL_KEY,
+};
+use windows::Win32::UI::WindowsAndMessaging::{
+    PostMessageW, SetForegroundWindow, WM_CHAR, WM_KEYDOWN, WM_KEYUP, WM_LBUTTONDOWN, WM_LBUTTONUP,
+    WM_MOUSEMOVE, WM_MOUSEWHEEL, WM_RBUTTONDOWN, WM_RBUTTONUP,
 };
 
 /// windows-rs doesn't export the classic MAKELPARAM C macro — it's just
@@ -126,7 +124,12 @@ pub fn char_event(hwnd: isize, ch: u16) {
     }
 }
 
-unsafe fn send_mouse_event(flags: windows::Win32::UI::Input::KeyboardAndMouse::MOUSE_EVENT_FLAGS, dx: i32, dy: i32, wheel: i32) {
+unsafe fn send_mouse_event(
+    flags: windows::Win32::UI::Input::KeyboardAndMouse::MOUSE_EVENT_FLAGS,
+    dx: i32,
+    dy: i32,
+    wheel: i32,
+) {
     let input = INPUT {
         r#type: INPUT_MOUSE,
         Anonymous: windows::Win32::UI::Input::KeyboardAndMouse::INPUT_0 {

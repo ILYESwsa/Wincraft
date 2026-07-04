@@ -3,9 +3,9 @@
 //! handles to them, since JNI can't pass Rust references across the
 //! boundary directly.
 
-use std::collections::HashMap;
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
+use std::collections::HashMap;
 
 use crate::capture::CaptureSession;
 
@@ -16,7 +16,7 @@ static NEXT_HANDLE: Lazy<Mutex<i64>> = Lazy::new(|| Mutex::new(1));
 pub fn register(session: CaptureSession) -> i64 {
     let mut next = NEXT_HANDLE.lock();
     let handle = *next;
-    *next += 1;
+    *next = next.checked_add(1).unwrap_or(1);
     SESSIONS.lock().insert(handle, session);
     handle
 }

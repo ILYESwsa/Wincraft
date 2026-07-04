@@ -3,7 +3,10 @@
   "minVersion": "0.8",
   "package": "com.wincraft.mixin",
   "compatibilityLevel": "JAVA_25",
-  "client": [],
+  "client": [
+    "KeyboardHandlerMixin",
+    "MouseHandlerMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

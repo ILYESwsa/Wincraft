@@ -10,7 +10,6 @@
     "sources": "https://github.com/ILYESwsa/wincraft"
   },
   "license": "GPL-3.0",
-  "icon": "assets/wincraft/icon.png",
   "environment": "client",
   "entrypoints": {
     "main": ["com.wincraft.Wincraft"],

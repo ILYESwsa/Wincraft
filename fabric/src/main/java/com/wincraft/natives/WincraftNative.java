@@ -2,18 +2,18 @@ package com.wincraft.natives;
 
 import com.wincraft.Wincraft;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * JNI bridge to wincraft.dll (native/src/jni_bridge.rs).
  *
  * Method names and signatures here are the JNI contract; the Rust side
  * derives its exported symbol names from these exact package/class/method
- * names (Java_com_wincraft_native_WincraftNative_xxx). Keep them in sync.
+ * names (Java_com_wincraft_natives_WincraftNative_xxx). Keep them in sync.
  */
 public final class WincraftNative {
 
@@ -34,15 +34,18 @@ public final class WincraftNative {
             Path tempDir = Files.createTempDirectory("wincraft-native");
             Path dllPath = tempDir.resolve("wincraft.dll");
 
-            try (InputStream in = WincraftNative.class.getResourceAsStream("/native/windows-x86_64/wincraft.dll")) {
-                if (in == null) {
-                    throw new IOException("wincraft.dll not found in mod resources — was the native build included?");
-                }
-                Files.copy(in, dllPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Path loadedPath = extractBundledDll(dllPath);
+            if (loadedPath == null) {
+                loadedPath = findDevelopmentDll();
+            }
+            if (loadedPath == null) {
+                throw new IOException("wincraft.dll not found in mod resources or native/target/release — was the native build included?");
             }
 
-            System.load(dllPath.toAbsolutePath().toString());
-            dllPath.toFile().deleteOnExit();
+            System.load(loadedPath.toAbsolutePath().toString());
+            if (loadedPath.equals(dllPath)) {
+                loadedPath.toFile().deleteOnExit();
+            }
 
             loaded = ping();
             if (!loaded) {
@@ -61,6 +64,24 @@ public final class WincraftNative {
 
     public static Throwable getLoadError() {
         return loadError;
+    }
+
+    private static Path extractBundledDll(Path dllPath) throws IOException {
+        try (InputStream in = WincraftNative.class.getResourceAsStream("/native/windows-x86_64/wincraft.dll")) {
+            if (in == null) {
+                return null;
+            }
+            Files.copy(in, dllPath, StandardCopyOption.REPLACE_EXISTING);
+            return dllPath;
+        }
+    }
+
+    private static Path findDevelopmentDll() {
+        Path devDll = Path.of("native", "target", "release", "wincraft.dll");
+        if (Files.isRegularFile(devDll)) {
+            return devDll;
+        }
+        return null;
     }
 
     // ---- Native methods, implemented in native/src/jni_bridge.rs ----
