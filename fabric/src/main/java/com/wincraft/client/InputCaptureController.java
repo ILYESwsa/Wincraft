@@ -53,7 +53,7 @@ public final class InputCaptureController {
     }
 
     private static void setCursorNormal() {
-        long handle = Minecraft.getInstance().getWindow().getWindow();
+        long handle = Minecraft.getInstance().getWindow().getHandle();
         GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
     }
 
@@ -65,7 +65,7 @@ public final class InputCaptureController {
         if (client.screen == null) {
             client.mouseHandler.grabMouse();
         } else {
-            long handle = client.getWindow().getWindow();
+            long handle = client.getWindow().getHandle();
             GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
         }
     }
