@@ -3,6 +3,7 @@ package com.wincraft.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.wincraft.Wincraft;
 import com.wincraft.client.gui.WindowLauncherScreen;
+import com.wincraft.client.gui.WindowManagerScreen;
 import com.wincraft.client.render.WincraftWorldRenderer;
 import com.wincraft.natives.WincraftNative;
 import com.wincraft.window.WindowManager;
@@ -22,6 +23,8 @@ public class WincraftClient implements ClientModInitializer {
     );
 
     private static KeyMapping openLauncherKey;
+    private static KeyMapping toggleCaptureKey;
+    private static KeyMapping openManagerKey;
 
     @Override
     public void onInitializeClient() {
@@ -29,6 +32,24 @@ public class WincraftClient implements ClientModInitializer {
 
         openLauncherKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.wincraft.open_launcher",
+                InputConstants.Type.KEYSYM,
+                GLFW.GLFW_KEY_V,
+                CATEGORY
+        ));
+
+        // Toggles keyboard+mouse capture into the focused window, mirroring
+        // waylandcraft's "G" binding. Alt+Q also releases (see InputForwarder).
+        toggleCaptureKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                "key.wincraft.toggle_capture",
+                InputConstants.Type.KEYSYM,
+                GLFW.GLFW_KEY_G,
+                CATEGORY
+        ));
+
+        // Opens the window-manager screen for moving/resizing/focusing/closing
+        // already-open windows, mirroring waylandcraft's "B" binding.
+        openManagerKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                "key.wincraft.open_manager",
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_B,
                 CATEGORY
@@ -52,14 +73,22 @@ public class WincraftClient implements ClientModInitializer {
             return;
         }
 
-        // Note: intentionally not gating on "is a screen already open" —
-        // that field's exact name in 26.1's official mappings wasn't
-        // confirmed after two failed guesses (currentScreen didn't
-        // exist). setScreen() simply replaces whatever's open, and
-        // consumeClick() already prevents repeat-fire while B is held,
-        // so this is safe to call unconditionally.
+        // consumeClick() only fires while no screen owns keyboard focus
+        // (vanilla KeyMapping behavior), so these are naturally gated
+        // against firing while the launcher/manager/pause screen is open.
         while (openLauncherKey.consumeClick()) {
             client.setScreen(new WindowLauncherScreen());
+        }
+
+        while (openManagerKey.consumeClick()) {
+            client.setScreen(new WindowManagerScreen());
+        }
+
+        // Only toggle capture while no Minecraft screen is open — capture
+        // is an in-world interaction, not something that should fire while
+        // e.g. the launcher or pause menu has keyboard focus.
+        while (toggleCaptureKey.consumeClick()) {
+            InputCaptureController.toggle();
         }
     }
 }

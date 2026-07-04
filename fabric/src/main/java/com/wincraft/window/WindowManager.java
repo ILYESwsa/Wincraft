@@ -127,4 +127,46 @@ public final class WindowManager {
         Vec3 pos = eye.add(look.scale(3.0D));
         window.setWorldPose(pos.x, pos.y, pos.z, player.getYRot());
     }
+
+    // ---- Move / resize (used by WindowManagerScreen, mirrors the Linux
+    // mod's "grab window" interactions) ----
+
+    /** Re-places a window a given distance in front of the player, facing them. */
+    public void moveInFrontOfPlayer(CapturedWindow window, double distanceBlocks) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return;
+
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getLookAngle();
+        Vec3 pos = eye.add(look.scale(distanceBlocks));
+        window.setWorldPose(pos.x, pos.y, pos.z, player.getYRot());
+    }
+
+    /** Finds the window whose center the player is most directly looking at, within a cone. */
+    public CapturedWindow findLookedAt(double maxDistance) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return null;
+
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getLookAngle();
+
+        CapturedWindow best = null;
+        double bestDot = 0.90D; // ~25 degree half-angle cone
+        for (CapturedWindow window : windows.values()) {
+            Vec3 toWindow = new Vec3(
+                    window.getWorldX() - eye.x,
+                    window.getWorldY() - eye.y,
+                    window.getWorldZ() - eye.z
+            );
+            double distance = toWindow.length();
+            if (distance < 0.001D || distance > maxDistance) continue;
+
+            double dot = toWindow.normalize().dot(look);
+            if (dot > bestDot) {
+                bestDot = dot;
+                best = window;
+            }
+        }
+        return best;
+    }
 }

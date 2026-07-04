@@ -37,6 +37,7 @@ public class CapturedWindow {
     private double worldY;
     private double worldZ;
     private float yawDegrees;
+    private float widthBlocks = 2.5F;
     private final int[] dimsScratch = new int[2];
 
     private InputMode inputMode = InputMode.WINDOWED;
@@ -154,6 +155,14 @@ public class CapturedWindow {
 
     public float getYawDegrees() {
         return yawDegrees;
+    }
+
+    public void setWidthBlocks(float widthBlocks) {
+        this.widthBlocks = Math.max(0.25F, widthBlocks);
+    }
+
+    public float getWidthBlocks() {
+        return widthBlocks;
     }
 
     public void setFocused(boolean focused) {
