@@ -60,6 +60,7 @@ public final class WincraftWorldRenderer {
         vertices.addVertex(poseStack.last(), x, y, z)
                 .setColor(255, 255, 255, 255)
                 .setUv(u, v)
+                .setUv1(0, 0)
                 .setLight(0x00F000F0)
                 .setNormal(0.0F, 0.0F, 1.0F);
     }
