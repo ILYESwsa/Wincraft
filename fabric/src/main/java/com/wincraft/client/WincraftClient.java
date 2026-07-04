@@ -45,8 +45,8 @@ public class WincraftClient implements ClientModInitializer {
         }
 
         while (openLauncherKey.consumeClick()) {
-            if (client.currentScreen == null) {
-                client.setScreen(new WindowLauncherScreen());
+            if (Minecraft.getInstance().currentScreen == null) {
+                Minecraft.getInstance().setScreen(new WindowLauncherScreen());
             }
         }
     }
