@@ -1,8 +1,18 @@
 {
   "key.category.wincraft.general": "Wincraft",
   "key.wincraft.open_launcher": "Open Window Launcher",
+  "key.wincraft.toggle_capture": "Toggle Keyboard/Mouse Capture",
+  "key.wincraft.open_manager": "Open Window Manager",
 
   "gui.wincraft.launcher.title": "Open Applications",
   "gui.wincraft.launcher.empty": "No capturable windows found",
-  "gui.wincraft.launcher.refresh": "Refresh"
+  "gui.wincraft.launcher.refresh": "Refresh",
+
+  "gui.wincraft.manager.title": "Window Manager",
+  "gui.wincraft.manager.none_selected": "Look at a window to select it",
+  "gui.wincraft.manager.closer": "Closer",
+  "gui.wincraft.manager.farther": "Farther",
+  "gui.wincraft.manager.smaller": "Smaller",
+  "gui.wincraft.manager.larger": "Larger",
+  "gui.wincraft.manager.close_window": "Close Window"
 }

@@ -14,8 +14,6 @@ import net.minecraft.world.phys.Vec3;
 /** Renders captured desktop windows as simple textured quads in the world. */
 public final class WincraftWorldRenderer {
 
-    private static final float DEFAULT_WIDTH_BLOCKS = 2.5F;
-
     private WincraftWorldRenderer() {}
 
     public static void register() {
@@ -41,7 +39,7 @@ public final class WincraftWorldRenderer {
 
     private static void renderWindow(LevelRenderContext context, PoseStack poseStack, Vec3 cameraPos, CapturedWindow window) {
         float aspect = window.getTextureHeight() == 0 ? 1.0F : (float) window.getTextureWidth() / (float) window.getTextureHeight();
-        float halfWidth = DEFAULT_WIDTH_BLOCKS * 0.5F;
+        float halfWidth = window.getWidthBlocks() * 0.5F;
         float halfHeight = halfWidth / Math.max(0.1F, aspect);
 
         poseStack.pushPose();
