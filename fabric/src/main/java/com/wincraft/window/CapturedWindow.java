@@ -1,21 +1,22 @@
 package com.wincraft.window;
 
+import com.wincraft.Wincraft;
 import com.wincraft.natives.InputMode;
 import com.wincraft.natives.VirtualKeyMap;
 import com.wincraft.natives.WincraftNative;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.textures.TextureFormat;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
 /**
- * Represents one live captured desktop window inside the Minecraft
- * world: owns the native capture session, uploads incoming frames as a
- * GPU texture, and forwards input while the window is "grabbed" or
- * "focused" — the equivalent of one Wayland client surface in the
- * original Linux mod.
+ * Represents one live captured desktop window: owns the native capture
+ * session and forwards input while the window is "focused".
+ *
+ * NOTE: GPU texture upload is stubbed out for now (logs frame arrival
+ * only) pending confirmation of Blaze3D's exact texture API surface in
+ * MC 26.1 — RenderSystem/GpuTexture/TextureFormat names used in earlier
+ * drafts were unverified guesses and didn't compile. Once the native
+ * capture -> JNI -> Java frame pipeline is confirmed working end to end,
+ * this is the only piece that needs re-adding.
  */
 public class CapturedWindow {
 
@@ -24,7 +25,6 @@ public class CapturedWindow {
     public final String title;
 
     private long sessionHandle;
-    private GpuTexture texture;
     private int textureWidth;
     private int textureHeight;
     private final int[] dimsScratch = new int[2];
@@ -49,18 +49,9 @@ public class CapturedWindow {
             WincraftNative.stopCapture(sessionHandle);
             sessionHandle = 0;
         }
-        if (texture != null) {
-            texture.close();
-            texture = null;
-        }
     }
 
-    /**
-     * Called once per client tick / render frame. Polls for a new
-     * captured frame and uploads it to the GPU texture if one arrived.
-     * Mirrors how the Linux mod's compositor pushes committed Wayland
-     * surface buffers onto the in-world quad texture.
-     */
+    /** Called once per client tick. Polls for a new captured frame. */
     public void update() {
         if (sessionHandle == 0) return;
 
@@ -71,34 +62,13 @@ public class CapturedWindow {
         int height = dimsScratch[1];
         if (width <= 0 || height <= 0) return;
 
-        uploadFrame(frame, width, height);
-    }
-
-    private void uploadFrame(byte[] bgra, int width, int height) {
-        RenderSystem.assertOnRenderThreadOrInit();
-
-        if (texture == null || textureWidth != width || textureHeight != height) {
-            if (texture != null) {
-                texture.close();
-            }
-            texture = RenderSystem.getDevice().createTexture(
-                    "wincraft/" + id,
-                    TextureFormat.BGRA8,
-                    width,
-                    height,
-                    1
-            );
+        if (width != textureWidth || height != textureHeight) {
             textureWidth = width;
             textureHeight = height;
+            Wincraft.LOGGER.info("Captured window {} frame size: {}x{}", title, width, height);
         }
-
-        ByteBuffer buffer = ByteBuffer.wrap(bgra);
-        RenderSystem.getDevice().createCommandEncoder()
-                .writeToTexture(texture, buffer, TextureFormat.BGRA8, 0, 0, 0, width, height);
-    }
-
-    public GpuTexture getTexture() {
-        return texture;
+        // TODO: upload `frame` (raw BGRA8 bytes) to a GPU texture once
+        // the correct Blaze3D API for MC 26.1 is confirmed.
     }
 
     public int getTextureWidth() {
@@ -121,10 +91,6 @@ public class CapturedWindow {
         this.inputMode = mode;
     }
 
-    // ---- Input forwarding — called from the input-capture handler
-    // while this window is focused (mirrors waylandcraft's "hard
-    // keyboard capture mode", default bind ALT-Q) ----
-
     public void forwardMouseMove(int x, int y) {
         WincraftNative.mouseMove(hwnd, inputMode.nativeValue, x, y);
     }
@@ -139,7 +105,7 @@ public class CapturedWindow {
 
     public void forwardKey(int glfwKeyCode, boolean down) {
         int vk = VirtualKeyMap.toVirtualKey(glfwKeyCode);
-        if (vk == -1) return; // unmapped key, silently ignore
+        if (vk == -1) return;
         WincraftNative.keyEvent(hwnd, inputMode.nativeValue, vk, down);
     }
 
