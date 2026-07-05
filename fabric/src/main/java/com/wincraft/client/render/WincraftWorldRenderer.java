@@ -46,11 +46,27 @@ public final class WincraftWorldRenderer {
         poseStack.translate(window.getWorldX() - cameraPos.x, window.getWorldY() - cameraPos.y, window.getWorldZ() - cameraPos.z);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - window.getYawDegrees()));
 
-        VertexConsumer vertices = context.bufferSource().getBuffer(RenderTypes.entityTranslucent(window.getTextureId()));
+        // Front face: the captured window texture. entityCutout (not
+        // translucent) since the captured frame is always fully opaque
+        // now (see CapturedWindow#uploadFrame) — this also gives correct
+        // depth-sorting against terrain instead of translucent blend order.
+        VertexConsumer vertices = context.bufferSource().getBuffer(RenderTypes.entityCutout(window.getTextureId()));
         addVertex(vertices, poseStack, -halfWidth, halfHeight, 0.0F, 0.0F, 0.0F);
         addVertex(vertices, poseStack, -halfWidth, -halfHeight, 0.0F, 0.0F, 1.0F);
         addVertex(vertices, poseStack, halfWidth, -halfHeight, 0.0F, 1.0F, 1.0F);
         addVertex(vertices, poseStack, halfWidth, halfHeight, 0.0F, 1.0F, 0.0F);
+
+        // Back face: plain black quad, wound the opposite way so it faces
+        // the other direction. RenderTypes here don't cull backfaces, so
+        // without this the player would see the front texture "through"
+        // the plane (mirrored) when walking behind it instead of a
+        // proper opaque back.
+        VertexConsumer backVertices = context.bufferSource().getBuffer(RenderTypes.solid());
+        addBlackVertex(backVertices, poseStack, -halfWidth, halfHeight, 0.0F);
+        addBlackVertex(backVertices, poseStack, halfWidth, halfHeight, 0.0F);
+        addBlackVertex(backVertices, poseStack, halfWidth, -halfHeight, 0.0F);
+        addBlackVertex(backVertices, poseStack, -halfWidth, -halfHeight, 0.0F);
+
         poseStack.popPose();
     }
 
@@ -61,5 +77,14 @@ public final class WincraftWorldRenderer {
                 .setUv1(0, 0)
                 .setLight(0x00F000F0)
                 .setNormal(0.0F, 0.0F, 1.0F);
+    }
+
+    private static void addBlackVertex(VertexConsumer vertices, PoseStack poseStack, float x, float y, float z) {
+        vertices.addVertex(poseStack.last(), x, y, z)
+                .setColor(0, 0, 0, 255)
+                .setUv(0.0F, 0.0F)
+                .setUv1(0, 0)
+                .setLight(0x00F000F0)
+                .setNormal(0.0F, 0.0F, -1.0F);
     }
 }
