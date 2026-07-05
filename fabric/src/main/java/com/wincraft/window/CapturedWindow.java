@@ -99,8 +99,12 @@ public class CapturedWindow {
                 int b = frame[i++] & 0xFF;
                 int g = frame[i++] & 0xFF;
                 int r = frame[i++] & 0xFF;
-                int a = frame[i++] & 0xFF;
-                pixels.setPixelABGR(x, y, (a << 24) | (b << 16) | (g << 8) | r);
+                i++; // skip captured alpha — desktop captures are meant to be
+                     // fully opaque; DWM/DXGI often reports partial or
+                     // garbage alpha per-pixel (window shadows, non-premultiplied
+                     // transparency) which caused visible blend-through when fed
+                     // into a translucent render type. Always force 255 instead.
+                pixels.setPixelABGR(x, y, (0xFF << 24) | (b << 16) | (g << 8) | r);
             }
         }
         texture.upload();
