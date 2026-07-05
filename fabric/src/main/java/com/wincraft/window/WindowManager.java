@@ -201,12 +201,16 @@ public final class WindowManager {
         Vec3 eye = player.getEyePosition();
         Vec3 look = player.getLookAngle();
 
-        // Plane normal: the quad faces the same direction it was placed
-        // to face (see WincraftWorldRenderer's yaw rotation), i.e.
-        // "180 - yaw" degrees around Y, matching the renderer exactly.
-        double yawRad = Math.toRadians(window.getYawDegrees());
-        double normalX = -Math.sin(yawRad);
-        double normalZ = Math.cos(yawRad);
+        // Must match WincraftWorldRenderer's actual rotation exactly:
+        // poseStack.mulPose(Axis.YP.rotationDegrees(180 - yaw)). The quad's
+        // unrotated normal is +Z (see addVertex's setNormal(0,0,1)), and
+        // rotating a +Z vector by angle a around +Y (right-hand rule)
+        // gives (sin(a), 0, cos(a)) — so the actual plane normal uses
+        // "180 - yaw", not yaw directly, which the previous version of
+        // this method omitted entirely.
+        double angleRad = Math.toRadians(180.0D - window.getYawDegrees());
+        double normalX = Math.sin(angleRad);
+        double normalZ = Math.cos(angleRad);
 
         Vec3 planePoint = new Vec3(window.getWorldX(), window.getWorldY(), window.getWorldZ());
         Vec3 planeNormal = new Vec3(normalX, 0.0D, normalZ);
@@ -223,8 +227,8 @@ public final class WindowManager {
         // Project the hit point onto the plane's local right/up axes.
         // "Right" is perpendicular to the normal in the XZ plane; "up" is
         // world Y, matching the renderer's unrotated vertical axis.
-        double rightX = Math.cos(yawRad);
-        double rightZ = Math.sin(yawRad);
+        double rightX = Math.cos(angleRad);
+        double rightZ = -Math.sin(angleRad);
         double localRight = local.x * rightX + local.z * rightZ;
         double localUp = local.y;
 
