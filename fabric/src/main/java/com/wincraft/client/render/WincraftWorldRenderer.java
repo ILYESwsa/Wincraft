@@ -1,18 +1,32 @@
 package com.wincraft.client.render;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import com.wincraft.Wincraft;
 import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 
 /** Renders captured desktop windows as simple textured quads in the world. */
 public final class WincraftWorldRenderer {
+
+    // A single 1x1 black pixel, reused as the "back of the window" texture
+    // for every CapturedWindow. Drawn with the same entityCutout render
+    // type as the front face (rather than hunting for a bare "solid, no
+    // texture" RenderTypes entry, which isn't part of any confirmed-stable
+    // public API surface for 26.1) so both faces use one code path that's
+    // already known to compile and render correctly in this environment.
+    private static final Identifier BACK_TEXTURE_ID = Identifier.fromNamespaceAndPath(Wincraft.MOD_ID, "capture_back");
+    private static boolean backTextureRegistered = false;
 
     private WincraftWorldRenderer() {}
 
@@ -20,10 +34,22 @@ public final class WincraftWorldRenderer {
         LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register(WincraftWorldRenderer::render);
     }
 
+    private static void ensureBackTexture() {
+        if (backTextureRegistered) return;
+        NativeImage pixel = new NativeImage(1, 1, false);
+        pixel.setPixelABGR(0, 0, 0xFF000000); // opaque black, ABGR
+        DynamicTexture texture = new DynamicTexture(() -> "wincraft/capture_back", pixel);
+        Minecraft.getInstance().getTextureManager().register(BACK_TEXTURE_ID, texture);
+        texture.upload();
+        backTextureRegistered = true;
+    }
+
     private static void render(LevelRenderContext context) {
         if (WindowManager.get().all().isEmpty()) {
             return;
         }
+
+        ensureBackTexture();
 
         PoseStack poseStack = context.poseStack();
         Camera camera = context.gameRenderer().getMainCamera();
@@ -56,16 +82,15 @@ public final class WincraftWorldRenderer {
         addVertex(vertices, poseStack, halfWidth, -halfHeight, 0.0F, 1.0F, 1.0F);
         addVertex(vertices, poseStack, halfWidth, halfHeight, 0.0F, 1.0F, 0.0F);
 
-        // Back face: plain black quad, wound the opposite way so it faces
-        // the other direction. RenderTypes here don't cull backfaces, so
-        // without this the player would see the front texture "through"
-        // the plane (mirrored) when walking behind it instead of a
-        // proper opaque back.
-        VertexConsumer backVertices = context.bufferSource().getBuffer(RenderTypes.solid());
-        addBlackVertex(backVertices, poseStack, -halfWidth, halfHeight, 0.0F);
-        addBlackVertex(backVertices, poseStack, halfWidth, halfHeight, 0.0F);
-        addBlackVertex(backVertices, poseStack, halfWidth, -halfHeight, 0.0F);
-        addBlackVertex(backVertices, poseStack, -halfWidth, -halfHeight, 0.0F);
+        // Back face: solid black, wound the opposite way so it faces the
+        // other direction. entityCutout doesn't cull backfaces, so without
+        // this the player would see the front texture "through" the plane
+        // (mirrored) when walking behind it instead of a proper opaque back.
+        VertexConsumer backVertices = context.bufferSource().getBuffer(RenderTypes.entityCutout(BACK_TEXTURE_ID));
+        addVertex(backVertices, poseStack, -halfWidth, halfHeight, 0.0F, 0.0F, 0.0F);
+        addVertex(backVertices, poseStack, halfWidth, halfHeight, 0.0F, 0.0F, 0.0F);
+        addVertex(backVertices, poseStack, halfWidth, -halfHeight, 0.0F, 0.0F, 0.0F);
+        addVertex(backVertices, poseStack, -halfWidth, -halfHeight, 0.0F, 0.0F, 0.0F);
 
         poseStack.popPose();
     }
@@ -77,14 +102,5 @@ public final class WincraftWorldRenderer {
                 .setUv1(0, 0)
                 .setLight(0x00F000F0)
                 .setNormal(0.0F, 0.0F, 1.0F);
-    }
-
-    private static void addBlackVertex(VertexConsumer vertices, PoseStack poseStack, float x, float y, float z) {
-        vertices.addVertex(poseStack.last(), x, y, z)
-                .setColor(0, 0, 0, 255)
-                .setUv(0.0F, 0.0F)
-                .setUv1(0, 0)
-                .setLight(0x00F000F0)
-                .setNormal(0.0F, 0.0F, -1.0F);
     }
 }
