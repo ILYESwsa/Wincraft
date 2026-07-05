@@ -18,11 +18,15 @@ public class MouseHandlerMixin {
         }
     }
 
-    @Inject(method = "onMove", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "onMove", at = @At("HEAD"))
     private void wincraft$forwardMove(long window, double x, double y, CallbackInfo ci) {
-        if (InputForwarder.handleMouseMove(x, y)) {
-            ci.cancel();
-        }
+        // Deliberately NOT cancellable: while capturing, camera look must
+        // keep running so the crosshair (the raycast used as the app's
+        // "cursor" — see InputForwarder/WindowManager#raycastFocused)
+        // actually moves. This just mirrors the current look direction
+        // to the focused window; vanilla still processes the same event
+        // for camera rotation right after this returns.
+        InputForwarder.handleMouseMove(x, y);
     }
 
     @Inject(method = "onScroll", at = @At("HEAD"), cancellable = true)
