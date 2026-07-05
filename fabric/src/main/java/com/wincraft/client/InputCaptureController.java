@@ -2,24 +2,21 @@ package com.wincraft.client;
 
 import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
-import net.minecraft.client.Minecraft;
 
 /**
  * Hard-keyboard-capture-mode toggling (mirrors ALT-Q / "G" in the Linux
  * waylandcraft mod). While capturing:
- *  - MouseHandlerMixin/KeyboardHandlerMixin redirect input to the focused
+ *  - KeyboardHandlerMixin redirects key/char events to the focused
  *    CapturedWindow instead of vanilla gameplay (see InputForwarder).
- *  - The OS cursor is released via vanilla's own MouseHandler#releaseMouse
- *    (the same call the pause menu uses) so it becomes a normal, visible
- *    pointer instead of GLFW's disabled/raw-look camera cursor.
- *
- * Releasing re-grabs the mouse via MouseHandler#grabMouse so camera look
- * resumes exactly as before capture started. This deliberately avoids
- * touching the raw GLFW window handle directly — 26.1's Window class
- * restructured around a GpuBackend and no longer exposes that the same
- * way older versions did, so going through MouseHandler keeps this code
- * on stable, documented vanilla API instead of a native pointer we'd
- * have to keep re-guessing the accessor for.
+ *  - MouseHandlerMixin cancels button/scroll events from reaching vanilla
+ *    gameplay, but movement is intentionally NOT cancelled and the mouse
+ *    stays grabbed in normal camera-look mode. The crosshair (screen
+ *    center) is the "cursor": InputForwarder resolves where you're
+ *    pointing by raycasting the player's look direction against the
+ *    window's plane (see WindowManager#raycastFocused), not by tracking
+ *    a separate free-floating 2D pointer. This avoids ever needing an
+ *    invisible/untracked OS cursor released onto the desktop, which
+ *    previously left clicks with nothing visible to aim with.
  */
 public final class InputCaptureController {
 
@@ -38,7 +35,6 @@ public final class InputCaptureController {
 
         capturing = true;
         focused.setFocused(true);
-        Minecraft.getInstance().mouseHandler.releaseMouse();
     }
 
     public static boolean isCapturing() {
@@ -51,13 +47,5 @@ public final class InputCaptureController {
 
         CapturedWindow focused = WindowManager.get().getFocused();
         if (focused != null) focused.setFocused(false);
-
-        Minecraft client = Minecraft.getInstance();
-        // Only re-grab if the game still owns input (e.g. no pause/other
-        // screen got opened while we were capturing) — grabbing while a
-        // Screen is open would fight the screen for cursor visibility.
-        if (client.screen == null) {
-            client.mouseHandler.grabMouse();
-        }
     }
 }
