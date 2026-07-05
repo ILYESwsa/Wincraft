@@ -83,14 +83,17 @@ public final class WincraftWorldRenderer {
         addVertex(vertices, poseStack, halfWidth, halfHeight, 0.0F, 1.0F, 0.0F);
 
         // Back face: solid black, wound the opposite way so it faces the
-        // other direction. entityCutout doesn't cull backfaces, so without
-        // this the player would see the front texture "through" the plane
-        // (mirrored) when walking behind it instead of a proper opaque back.
+        // other direction, and pushed back by a small epsilon along the
+        // normal. Without this offset both quads sit at the exact same
+        // depth, and depth-buffer precision can't consistently pick a
+        // winner up close / at grazing angles — causing the flicker
+        // between the texture and black that shows up at close range.
+        float backOffset = 0.01F;
         VertexConsumer backVertices = context.bufferSource().getBuffer(RenderTypes.entityCutout(BACK_TEXTURE_ID));
-        addVertex(backVertices, poseStack, -halfWidth, halfHeight, 0.0F, 0.0F, 0.0F);
-        addVertex(backVertices, poseStack, halfWidth, halfHeight, 0.0F, 0.0F, 0.0F);
-        addVertex(backVertices, poseStack, halfWidth, -halfHeight, 0.0F, 0.0F, 0.0F);
-        addVertex(backVertices, poseStack, -halfWidth, -halfHeight, 0.0F, 0.0F, 0.0F);
+        addVertex(backVertices, poseStack, -halfWidth, halfHeight, -backOffset, 0.0F, 0.0F);
+        addVertex(backVertices, poseStack, halfWidth, halfHeight, -backOffset, 0.0F, 0.0F);
+        addVertex(backVertices, poseStack, halfWidth, -halfHeight, -backOffset, 0.0F, 0.0F);
+        addVertex(backVertices, poseStack, -halfWidth, -halfHeight, -backOffset, 0.0F, 0.0F);
 
         poseStack.popPose();
     }
