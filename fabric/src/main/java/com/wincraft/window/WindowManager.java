@@ -169,4 +169,85 @@ public final class WindowManager {
         }
         return best;
     }
+
+    /**
+     * Result of a crosshair raycast against a window's quad: which
+     * window was hit, and where on its texture (0,0 = top-left,
+     * width-1,height-1 = bottom-right) the crosshair lands.
+     */
+    public record HitResult(CapturedWindow window, int textureX, int textureY) {}
+
+    /**
+     * Casts a ray from the player's eye along their look direction and
+     * finds where it crosses the focused window's plane, converting that
+     * intersection into exact texture-pixel coordinates.
+     *
+     * Since the crosshair is always screen-center in first person, and
+     * mouse-look only ever rotates the camera (never moves a separate 2D
+     * cursor), "where the player is looking" is exactly the same ray
+     * InputForwarder needs for click accuracy — no separate
+     * screen-to-world unprojection math is needed.
+     */
+    public HitResult raycastFocused() {
+        CapturedWindow window = getFocused();
+        if (window == null) return null;
+        return raycast(window);
+    }
+
+    private HitResult raycast(CapturedWindow window) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return null;
+
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getLookAngle();
+
+        // Plane normal: the quad faces the same direction it was placed
+        // to face (see WincraftWorldRenderer's yaw rotation), i.e.
+        // "180 - yaw" degrees around Y, matching the renderer exactly.
+        double yawRad = Math.toRadians(window.getYawDegrees());
+        double normalX = -Math.sin(yawRad);
+        double normalZ = Math.cos(yawRad);
+
+        Vec3 planePoint = new Vec3(window.getWorldX(), window.getWorldY(), window.getWorldZ());
+        Vec3 planeNormal = new Vec3(normalX, 0.0D, normalZ);
+
+        double denom = look.dot(planeNormal);
+        if (Math.abs(denom) < 1.0E-6D) return null; // looking parallel to the plane
+
+        double t = planePoint.subtract(eye).dot(planeNormal) / denom;
+        if (t <= 0.0D) return null; // plane is behind the player
+
+        Vec3 hit = eye.add(look.scale(t));
+        Vec3 local = hit.subtract(planePoint);
+
+        // Project the hit point onto the plane's local right/up axes.
+        // "Right" is perpendicular to the normal in the XZ plane; "up" is
+        // world Y, matching the renderer's unrotated vertical axis.
+        double rightX = Math.cos(yawRad);
+        double rightZ = Math.sin(yawRad);
+        double localRight = local.x * rightX + local.z * rightZ;
+        double localUp = local.y;
+
+        float aspect = window.getTextureHeight() == 0
+                ? 1.0F
+                : (float) window.getTextureWidth() / (float) window.getTextureHeight();
+        float halfWidth = window.getWidthBlocks() * 0.5F;
+        float halfHeight = halfWidth / Math.max(0.1F, aspect);
+
+        if (Math.abs(localRight) > halfWidth || Math.abs(localUp) > halfHeight) {
+            return null; // hit the plane, but outside the actual quad bounds
+        }
+
+        // Renderer's front-face UVs: (-halfWidth, halfHeight) -> (0,0),
+        // (halfWidth, -halfHeight) -> (1,1). Match that mapping exactly.
+        double u = (localRight + halfWidth) / (2.0D * halfWidth);
+        double v = (halfHeight - localUp) / (2.0D * halfHeight);
+
+        int textureX = (int) Math.round(u * (window.getTextureWidth() - 1));
+        int textureY = (int) Math.round(v * (window.getTextureHeight() - 1));
+        textureX = Math.max(0, Math.min(window.getTextureWidth() - 1, textureX));
+        textureY = Math.max(0, Math.min(window.getTextureHeight() - 1, textureY));
+
+        return new HitResult(window, textureX, textureY);
+    }
 }
