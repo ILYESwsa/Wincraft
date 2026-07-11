@@ -53,6 +53,57 @@ public final class WindowManager {
         return window;
     }
 
+    /**
+     * Opens a new captured window and places it wherever the player's
+     * crosshair currently points (see {@link #crosshairPlacement(double)}),
+     * instead of always a fixed distance straight ahead of the feet-facing
+     * yaw. Used by WindowSpawnerItem's first use, so a window lands
+     * exactly where you were aiming.
+     */
+    public CapturedWindow openAtCrosshair(WindowHandle handle, double distanceBlocks) {
+        CapturedWindow window = new CapturedWindow(handle.hwnd, handle.title);
+        if (!window.start()) {
+            return null;
+        }
+        Pose pose = crosshairPlacement(distanceBlocks);
+        if (pose != null) {
+            window.setWorldPose(pose.x(), pose.y(), pose.z(), pose.yawDegrees());
+        } else {
+            placeInFrontOfPlayer(window);
+        }
+        windows.put(window.id, window);
+        setFocused(window.id);
+        return window;
+    }
+
+    /**
+     * Re-places an already-open window at the player's current crosshair
+     * position instead of spawning a duplicate. Used by WindowSpawnerItem
+     * when used a second time while its window is still open.
+     */
+    public boolean moveToCrosshair(UUID id, double distanceBlocks) {
+        CapturedWindow window = windows.get(id);
+        if (window == null) return false;
+
+        Pose pose = crosshairPlacement(distanceBlocks);
+        if (pose == null) return false;
+        window.setWorldPose(pose.x(), pose.y(), pose.z(), pose.yawDegrees());
+        return true;
+    }
+
+    /** Straight-line eye + look * distance, facing the player's current yaw, matching placeInFrontOfPlayer. */
+    private record Pose(double x, double y, double z, float yawDegrees) {}
+
+    private Pose crosshairPlacement(double distanceBlocks) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return null;
+
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getLookAngle();
+        Vec3 pos = eye.add(look.scale(distanceBlocks));
+        return new Pose(pos.x, pos.y, pos.z, player.getYRot());
+    }
+
     public void close(UUID id) {
         CapturedWindow window = windows.remove(id);
         if (window != null) {

@@ -1,19 +1,26 @@
 package com.wincraft.client.gui;
 
+import com.wincraft.item.ModComponents;
+import com.wincraft.item.ModItems;
+import com.wincraft.item.WindowItemData;
 import com.wincraft.natives.WindowHandle;
-import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Bound to the "open launcher" key (default B). Lists currently open
- * Windows applications; clicking one starts capturing it.
+ * Bound to the "open launcher" key (default V). Lists currently open
+ * Windows applications; clicking one gives the player a window-spawner
+ * item for it instead of placing the window immediately. Right-clicking
+ * that item is what actually starts the capture (see WindowSpawnerItem) —
+ * this screen only picks *which* window the item refers to.
  *
  * Built against Fabric's confirmed 26.1.2 Screen API: extractRenderState
  * (not render), GuiGraphicsExtractor (not GuiGraphics), Button.builder()
@@ -56,11 +63,16 @@ public class WindowLauncherScreen extends Screen {
     }
 
     private void openWindow(WindowHandle handle) {
-        CapturedWindow window = WindowManager.get().open(handle);
-        if (window != null) {
-            Minecraft.getInstance().setScreen(null);
+        WindowItemData data = new WindowItemData(handle.hwnd, handle.title, handle.className, Optional.empty());
+        ItemStack stack = new ItemStack(ModItems.WINDOW_SPAWNER);
+        stack.set(ModComponents.WINDOW_DATA, data);
+
+        var player = Minecraft.getInstance().player;
+        if (player != null && !player.getInventory().add(stack)) {
+            // Inventory full — drop it at the player's feet like a normal pickup miss.
+            player.drop(stack, false);
         }
-        // If null, capture failed — leave the screen open to try another.
+        Minecraft.getInstance().setScreen(null);
     }
 
     private static String truncate(String s, int max) {
