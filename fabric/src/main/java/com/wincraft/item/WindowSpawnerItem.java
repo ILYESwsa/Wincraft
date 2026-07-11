@@ -1,11 +1,9 @@
 package com.wincraft.item;
 
+import com.wincraft.Wincraft;
 import com.wincraft.natives.WindowHandle;
 import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -72,11 +70,11 @@ public class WindowSpawnerItem extends Item {
         WindowHandle handle = new WindowHandle(data.hwnd(), data.title(), data.className());
         CapturedWindow window = manager.openAtCrosshair(handle, PLACE_DISTANCE);
         if (window == null) {
-            LocalPlayer localPlayer = Minecraft.getInstance().player;
-            if (localPlayer != null) {
-                localPlayer.displayClientMessage(
-                        Component.translatable("item.wincraft.window_spawner.capture_failed", data.title()), true);
-            }
+            // No confirmed in-chat message API for this MC version yet —
+            // log it like every other capture failure in this mod
+            // (see CapturedWindow/WincraftNative) rather than guess again
+            // at a player-facing method name.
+            Wincraft.LOGGER.warn("Failed to capture window \"{}\" (hwnd={})", data.title(), data.hwnd());
             return InteractionResult.FAIL;
         }
 

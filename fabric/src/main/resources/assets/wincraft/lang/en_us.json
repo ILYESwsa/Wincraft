@@ -16,6 +16,5 @@
   "gui.wincraft.manager.larger": "Larger",
   "gui.wincraft.manager.close_window": "Close Window",
 
-  "item.wincraft.window_spawner": "Captured Window",
-  "item.wincraft.window_spawner.capture_failed": "Couldn't capture \"%s\" — it may have been closed"
+  "item.wincraft.window_spawner": "Captured Window"
 }
