@@ -16,7 +16,7 @@ Frames are captured via `Windows.Graphics.Capture` (the same API OBS and Xbox Ga
 
 ## Requirements
 
-- **Windows 10 (2004+) or Windows 11** — `Windows.Graphics.Capture` is unavailable on older builds.
+- **Windows 10 (1803+) or Windows 11** — `Windows.Graphics.Capture` is unavailable on older builds.
 - Minecraft 26.1.2, Fabric Loader ≥0.18, Fabric API.
 - To build: Rust toolchain (`x86_64-pc-windows-msvc` target) + Java 25 SDK.
 
