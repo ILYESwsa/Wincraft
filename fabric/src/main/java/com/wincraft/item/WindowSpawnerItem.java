@@ -3,6 +3,8 @@ package com.wincraft.item;
 import com.wincraft.natives.WindowHandle;
 import com.wincraft.window.CapturedWindow;
 import com.wincraft.window.WindowManager;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -70,7 +72,11 @@ public class WindowSpawnerItem extends Item {
         WindowHandle handle = new WindowHandle(data.hwnd(), data.title(), data.className());
         CapturedWindow window = manager.openAtCrosshair(handle, PLACE_DISTANCE);
         if (window == null) {
-            user.displayClientMessage(Component.translatable("item.wincraft.window_spawner.capture_failed", data.title()), true);
+            LocalPlayer localPlayer = Minecraft.getInstance().player;
+            if (localPlayer != null) {
+                localPlayer.displayClientMessage(
+                        Component.translatable("item.wincraft.window_spawner.capture_failed", data.title()), true);
+            }
             return InteractionResult.FAIL;
         }
 
