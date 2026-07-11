@@ -51,6 +51,16 @@ public final class WincraftWorldRenderer {
 
         ensureBackTexture();
 
+        // Poll for fresh frames here, once per rendered frame, rather than
+        // only from the 20Hz client tick (see WincraftClient#onClientTick).
+        // The tick loop runs at a fixed 20/sec regardless of the game's
+        // actual framerate, which capped captured windows at a choppy
+        // ~20fps ceiling even when the rest of the game ran much faster.
+        // Polling here lets updates track real render framerate instead.
+        for (CapturedWindow window : WindowManager.get().all()) {
+            window.update();
+        }
+
         PoseStack poseStack = context.poseStack();
         Camera camera = context.gameRenderer().getMainCamera();
         Vec3 cameraPos = camera.position();

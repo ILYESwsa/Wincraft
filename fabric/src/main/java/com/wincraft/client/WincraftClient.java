@@ -67,8 +67,10 @@ public class WincraftClient implements ClientModInitializer {
     }
 
     private void onClientTick(Minecraft client) {
-        WindowManager.get().tick();
-
+        // Frame polling for captured windows now happens in
+        // WincraftWorldRenderer#render, once per rendered frame, instead
+        // of here — the client tick loop is fixed at 20/sec regardless of
+        // actual framerate, which capped window updates at a choppy 20fps.
         if (!WincraftNative.isLoaded()) {
             return;
         }
