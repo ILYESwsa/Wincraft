@@ -59,8 +59,22 @@ public final class WindowManager {
      * instead of always a fixed distance straight ahead of the feet-facing
      * yaw. Used by WindowSpawnerItem's first use, so a window lands
      * exactly where you were aiming.
+     *
+     * If a CapturedWindow for this exact hwnd is already open — e.g. the
+     * item that originally placed it despawned/got lost after being
+     * dropped, and a fresh item for the same desktop window was picked
+     * from the launcher — this adopts and moves the existing window
+     * instead of starting a second capture session for the same window.
+     * See {@link #findByHwnd(long)}.
      */
     public CapturedWindow openAtCrosshair(WindowHandle handle, double distanceBlocks) {
+        CapturedWindow already = findByHwnd(handle.hwnd);
+        if (already != null) {
+            moveToCrosshair(already.id, distanceBlocks);
+            setFocused(already.id);
+            return already;
+        }
+
         CapturedWindow window = new CapturedWindow(handle.hwnd, handle.title);
         if (!window.start()) {
             return null;
@@ -74,6 +88,22 @@ public final class WindowManager {
         windows.put(window.id, window);
         setFocused(window.id);
         return window;
+    }
+
+    /**
+     * Finds the currently-open CapturedWindow for a given hwnd, if any.
+     * This is the source of truth a WindowSpawnerItem should defer to —
+     * its own remembered windowId is just a fast-path cache and can go
+     * stale (item dropped and despawned, cloned via commands, etc.)
+     * without ever desyncing from "is this window actually still open".
+     */
+    public CapturedWindow findByHwnd(long hwnd) {
+        for (CapturedWindow window : windows.values()) {
+            if (window.hwnd == hwnd) {
+                return window;
+            }
+        }
+        return null;
     }
 
     /**

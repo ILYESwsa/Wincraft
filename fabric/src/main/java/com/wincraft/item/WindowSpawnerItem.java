@@ -11,22 +11,26 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-import java.util.Optional;
-import java.util.UUID;
-
 /**
  * Picking a window in WindowLauncherScreen gives the player one of these
  * instead of opening the capture immediately (see
- * WindowLauncherScreen#openWindow). The window only actually appears in
- * the world once the item is used:
+ * WindowLauncherScreen#openWindow). Each item remembers which desktop
+ * window it refers to (hwnd + app title), and the window only actually
+ * appears in the world once the item is used:
  *
- *  - First use (no live window bound yet, or the previously bound one
- *    was closed some other way): starts the capture and places it at the
- *    crosshair, distanceBlocks in front of the player. The resulting
- *    CapturedWindow's id is written back onto the stack.
- *  - Any later use, while that window is still open: moves the *same*
- *    window to the new crosshair position instead of spawning a
- *    duplicate — this is the "modify its coordinates" behavior.
+ *  - If no capture for this hwnd is currently open, use() starts one and
+ *    places it at the crosshair, distanceBlocks in front of the player.
+ *  - If a capture for this hwnd is already open — including one placed
+ *    by a *different* item stack for the same app, e.g. after the
+ *    original item despawned on the ground and the player picked a
+ *    fresh one from the launcher — use() moves that same window to the
+ *    new crosshair position instead of spawning a duplicate.
+ *
+ * The dedupe lives in WindowManager#openAtCrosshair, keyed by hwnd
+ * (WindowManager#findByHwnd), not by the UUID this item happens to
+ * remember — an item's own windowId is only a best-effort cache; the
+ * hwnd lookup is what actually prevents duplicates, since it doesn't
+ * rely on any single ItemStack surviving.
  *
  * Right-click (use) rather than a screen click is intentional here so
  * placement can reuse the same eye+look raycast math the renderer and
@@ -58,15 +62,11 @@ public class WindowSpawnerItem extends Item {
 
         WindowManager manager = WindowManager.get();
 
-        // Already placed and still alive -> move it, don't duplicate.
-        Optional<UUID> existing = data.windowId();
-        if (existing.isPresent() && manager.get(existing.get()) != null) {
-            manager.moveToCrosshair(existing.get(), PLACE_DISTANCE);
-            return InteractionResult.SUCCESS;
-        }
-
-        // Not placed yet (or was closed elsewhere, e.g. the B manager
-        // screen's Close button) -> start a fresh capture at the crosshair.
+        // openAtCrosshair itself checks WindowManager#findByHwnd first and
+        // just moves the existing capture if one's already running for
+        // this hwnd, so this single call handles both "first placement"
+        // and "move the existing window" — no duplicate is possible even
+        // if this item's own remembered windowId is stale or was never set.
         WindowHandle handle = new WindowHandle(data.hwnd(), data.title(), data.className());
         CapturedWindow window = manager.openAtCrosshair(handle, PLACE_DISTANCE);
         if (window == null) {

@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -66,6 +67,10 @@ public class WindowLauncherScreen extends Screen {
         WindowItemData data = new WindowItemData(handle.hwnd, handle.title, handle.className, Optional.empty());
         ItemStack stack = new ItemStack(ModItems.WINDOW_SPAWNER);
         stack.set(ModComponents.WINDOW_DATA, data);
+        // Show the actual app name in inventory/tooltip instead of the
+        // generic "Captured Window" item name, so multiple picked-up
+        // windows are distinguishable at a glance.
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(handle.title));
 
         var player = Minecraft.getInstance().player;
         if (player != null && !player.getInventory().add(stack)) {
